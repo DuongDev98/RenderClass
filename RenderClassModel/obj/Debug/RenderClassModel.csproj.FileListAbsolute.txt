@@ -1,0 +1,11 @@
+H:\TOOLS\RenderClassModel\RenderClassModel\bin\Debug\RenderClassModel.exe.config
+H:\TOOLS\RenderClassModel\RenderClassModel\bin\Debug\RenderClassModel.exe
+H:\TOOLS\RenderClassModel\RenderClassModel\bin\Debug\RenderClassModel.pdb
+H:\TOOLS\RenderClassModel\RenderClassModel\obj\Debug\RenderClassModel.csproj.AssemblyReference.cache
+H:\TOOLS\RenderClassModel\RenderClassModel\obj\Debug\RenderClassModel.csproj.SuggestedBindingRedirects.cache
+H:\TOOLS\RenderClassModel\RenderClassModel\obj\Debug\RenderClassModel.Properties.Resources.resources
+H:\TOOLS\RenderClassModel\RenderClassModel\obj\Debug\RenderClassModel.csproj.GenerateResource.cache
+H:\TOOLS\RenderClassModel\RenderClassModel\obj\Debug\RenderClassModel.csproj.CoreCompileInputs.cache
+H:\TOOLS\RenderClassModel\RenderClassModel\obj\Debug\RenderClassModel.exe
+H:\TOOLS\RenderClassModel\RenderClassModel\obj\Debug\RenderClassModel.pdb
+H:\TOOLS\RenderClassModel\RenderClassModel\obj\Debug\RenderClassModel.Main.resources

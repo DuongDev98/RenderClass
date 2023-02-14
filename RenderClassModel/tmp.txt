@@ -1,0 +1,101 @@
+using System;
+using System.Collections.Generic;
+using System.Data;
+
+namespace TeamHpCode.Mapping
+{
+    public class Tmp
+    {
+        public string ID { set; get; }
+        public DateTime NGAY { set; get; }
+        public string NAME { set; get; }
+        public int DATHANHTOAN { set; get; }
+        public decimal TONGCONG { set; get; }
+
+        public Tmp()
+        {
+            InitWithoutParam();
+        }
+
+        private void InitWithoutParam()
+        {
+            ID = "";
+            NGAY = DateTime.Now.Date;
+            NAME = "";
+            DATHANHTOAN = 0;
+            TONGCONG = 0;
+        }
+
+        public Tmp(DataRow row)
+        {
+            InitWithDataRow(row);
+        }
+
+        private void InitWithDataRow(DataRow row)
+        {
+            if (row.Table.Columns.Contains("ID")) ID = row["ID"].ToString();
+            if (row.Table.Columns.Contains("NGAY")) NGAY = Convert.ToDateTime(row["NGAY"]);
+            if (row.Table.Columns.Contains("NAME")) NAME = row["NAME"].ToString();
+            if (row.Table.Columns.Contains("DATHANHTOAN")) DATHANHTOAN = Convert.ToInt32(row["DATHANHTOAN"]);
+            if (row.Table.Columns.Contains("TONGCONG")) TONGCONG = Convert.ToDecimal(row["TONGCONG"]);
+        }
+
+        public Tmp(string ID)
+        {
+            this.ID = ID;
+            if (ID == null || ID.Length == 0) InitWithoutParam();
+            else
+            {
+                DataRow row = Database.GetFirstRow("select * from tdonhang where id = @id", attrs);
+                if (row != null)
+                {
+                    InitWithDataRow(row);
+                }
+            }
+        }
+
+        private Dictionary<string, object> attrs
+        {
+            get
+            {
+                Dictionary<string, object> dic = new Dictionary<string, object>();
+                dic.Add("@ID", ID);
+                dic.Add("@NGAY", NGAY);
+                dic.Add("@NAME", NAME);
+                dic.Add("@DATHANHTOAN", DATHANHTOAN);
+                dic.Add("@TONGCONG", TONGCONG);
+                return dic;
+            }
+        }
+
+        public DataRow ToRow(DataTable dt)
+        {
+            DataRow row = dt.NewRow();
+            row["ID"] = ID;
+            row["NGAY"] = NGAY;
+            row["NAME"] = NAME;
+            row["DATHANHTOAN"] = DATHANHTOAN;
+            row["TONGCONG"] = TONGCONG;
+            return row;
+        }
+
+        public bool Update()
+        {
+            if (ID == null || ID.Length == 0)
+            {
+                ID = Guid.NewGuid().ToString();
+                return Database.ExSql(@"insert into tdonhang(id, ngay, name, dkhachhangid, tongcong, note) values(@id, @ngay, @name, @dkhachhangid, @tongcong, @note)", attrs) > 0;
+            }
+            else
+            {
+                return Database.ExSql(@"update tdonhang set ngay = @ngay, name = @name, dkhachhangid = @dkhachhangid, tongcong = @tongcong, note = @note where id = @id", attrs) > 0;
+            }
+        }
+
+        public void Delete()
+        {
+            Database.ExSql("delete from tdonhang where id = @id", attrs);
+            Database.ExSql("delete from tdonhangchitiet where tdonhangid = @id", attrs);
+        }
+    }
+}
