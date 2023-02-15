@@ -1,13 +1,8 @@
 ﻿using DuongNn.Db;
+using DuongNn.Mapping;
 using RenderClassModel.Utils;
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -19,6 +14,12 @@ namespace RenderClassModel
         {
             InitializeComponent();
             txtFolder.Text = "H:\\TOOLS\\RenderClassModel\\RenderClassModel\\code";
+
+            //test
+            //txtServer.Text = "server1.thuanvietsoft.com,1444";
+            //txtUsername.Text = "erpdemo";
+            //txtPassword.Text = "erpdemo123";
+            //txtDatabase.Text = "thuanvietsoft.com_nppthuanphat";
         }
 
         private void Main_Load(object sender, EventArgs e)
@@ -42,6 +43,16 @@ namespace RenderClassModel
             }
 
             Database db = new Database(server, username, password, database);
+
+            bool test = true;
+            if (test)
+            {
+                TDONHANGRow dhRow = new TDONHANGRow("5492e766-98a6-4d8c-8262-cf704e4da5bf");
+                dhRow.NOTE = "123";
+                dhRow.Update();
+                return;
+            }
+
             RenderDatabase render = new RenderDatabase(db, folder);
 
             Task task = new Task(() =>

@@ -46,6 +46,27 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="code\DANHRow.cs" />
+    <Compile Include="code\DbConfig.cs" />
+    <Compile Include="code\DDANGRow.cs" />
+    <Compile Include="code\DKHACHHANGRow.cs" />
+    <Compile Include="code\DMATHANGRow.cs" />
+    <Compile Include="code\DMAUCHITIETRow.cs" />
+    <Compile Include="code\DMAURow.cs" />
+    <Compile Include="code\DNHANVIENRow.cs" />
+    <Compile Include="code\DNHAXERow.cs" />
+    <Compile Include="code\DNHOMHANGRow.cs" />
+    <Compile Include="code\DNHOMKHACHHANGRow.cs" />
+    <Compile Include="code\DPHANLOAIRow.cs" />
+    <Compile Include="code\DSIZECHITIETRow.cs" />
+    <Compile Include="code\DSIZERow.cs" />
+    <Compile Include="code\DTHOIGIANDATRow.cs" />
+    <Compile Include="code\DTRANGTHAIDONRow.cs" />
+    <Compile Include="code\SUSERRow.cs" />
+    <Compile Include="code\TDONHANGCHITIETRow.cs" />
+    <Compile Include="code\TDONHANGRow.cs" />
+    <Compile Include="code\TGIAOHANGRow.cs" />
+    <Compile Include="code\TLUUVETRow.cs" />
     <Compile Include="Main.cs">
       <SubType>Form</SubType>
     </Compile>

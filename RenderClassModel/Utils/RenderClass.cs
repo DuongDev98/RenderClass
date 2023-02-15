@@ -69,17 +69,12 @@ namespace RenderClassModel.Utils
                 //5.To Row
                 StringBuilder sbToRow = new StringBuilder();
 
-                //6.Sql insert
-                string sqlInsertTitle = "", sqlInsertValue = "";
-
-                //7.Sql update
-                string sqlUpdate = "";
-
+                bool hasId = false;
                 foreach (DataRow rowColumn in rowColums)
                 {
                     string tmp = "", rowValue = "";
                     string dataType = rowColumn["DATA_TYPE"].ToString().ToLower(), columnName = rowColumn["COLUMN_NAME"].ToString();
-
+                    if (columnName.ToLower() == "id") hasId = true;
                     //1
                     tmp = dataType;
                     if (dataType == "varchar" || dataType == "nvarchar")
@@ -106,7 +101,7 @@ namespace RenderClassModel.Utils
                         //3
                         rowValue = "Convert.ToDateTime(row[\"" + columnName + "\"]);";
                     }
-                    if (dataType == "int" || dataType == "numberic")
+                    if (dataType == "int" || dataType == "numeric")
                     {
                         //3
                         rowValue = "Convert.ToInt32(row[\"" + columnName + "\"]);";
@@ -120,7 +115,7 @@ namespace RenderClassModel.Utils
 
                     //2
                     if (dataType == "varchar" || dataType == "nvarchar") tmp = "\"\"";
-                    if (dataType == "int" || dataType == "numberic" || dataType == "bigint" || dataType == "decimal") tmp = "0";
+                    if (dataType == "int" || dataType == "numeric" || dataType == "bigint" || dataType == "decimal") tmp = "0";
                     if (dataType == "datetime")
                     {
                         tmp = "DateTime.Now";
@@ -132,23 +127,13 @@ namespace RenderClassModel.Utils
                     sbInitWithoutParam.AppendLine(columnName + " = " + tmp + ";");
 
                     //3
-                    sbInitWithDataRow.AppendLine("if (row.Table.Columns.Contains(\"" + columnName + "\")) " + columnName + " = " + rowValue);
+                    sbInitWithDataRow.AppendLine("if (row.Table.Columns.Contains(\"" + columnName + "\") && row[\""+columnName+"\"] != DBNull.Value) " + columnName + " = " + rowValue);
 
                     //4
-                    sbDicAttrs.AppendLine("dic.Add(\"" + columnName + "\", " + columnName + ");");
+                    sbDicAttrs.AppendLine("dic.Add(\"@" + columnName + "\", " + columnName + ");");
 
                     //5
                     sbToRow.AppendLine("row[\"" + columnName + "\"] = " + columnName + ";");
-
-                    //6
-                    if (sqlInsertTitle.Length > 0) sqlInsertTitle += ", ";
-                    sqlInsertTitle += columnName;
-                    if (sqlInsertValue.Length > 0) sqlInsertValue += ", ";
-                    sqlInsertValue += "@" + columnName;
-
-                    //7
-                    if (sqlUpdate.Length > 0) sqlUpdate += ", ";
-                    sqlUpdate += columnName + "=@" + columnName;
                 }
 
                 contentFile =
@@ -185,19 +170,7 @@ namespace RenderClassModel.Utils
                             @InitWithDataRow
                         }
 
-                        public @Tmp(string ID)
-                        {
-                            this.ID = ID;
-                            if (ID == null || ID.Length == 0) InitWithoutParam();
-                            else
-                            {
-                                DataRow row = db.GetFirstRow(@selectrow, attrs);
-                                if (row != null)
-                                {
-                                    InitWithDataRow(row);
-                                }
-                            }
-                        }
+                        @contructorWithId
 
                         private Dictionary<string, object> attrs
                         {
@@ -216,25 +189,69 @@ namespace RenderClassModel.Utils
                             return row;
                         }
 
-                        public bool Update()
-                        {
-                            if (ID == null || ID.Length == 0)
-                            {
-                                ID = Guid.NewGuid().ToString();
-                                return db.ExSql(@sqlInsert, attrs) > 0;
-                            }
-                            else
-                            {
-                                return db.ExSql(@sqlUpdate, attrs) > 0;
-                                }
-                            }
+                        @updateFunc
 
-                        public void Delete()
-                        {
-                            db.ExSql(@sqlDelete, attrs);
-                        }
+                        @deleteFunc
                     }
                 }";
+                contentFile = contentFile.Replace("@contructorWithId", !hasId ? "" :
+                @"public @Tmp(string ID)
+                {
+                    this.ID = ID;
+                    if (ID == null || ID.Length == 0) InitWithoutParam();
+                    else
+                    {
+                        DataRow row = db.GetFirstRow(@selectrow, attrs);
+                        if (row != null)
+                        {
+                            InitWithDataRow(row);
+                        }
+                    }
+                }").Replace("@updateFunc", !hasId ? "" :
+                @"
+                public bool Update()
+                {
+                    bool insert = false;
+                    string querySql = string.Empty, p1 = string.Empty, p2 = string.Empty;
+                    if (ID == null || ID.Length == 0)
+                    {
+                        ID = Guid.NewGuid().ToString();
+                        insert = true;
+                    }
+                    foreach (string key in attrs.Keys)
+                    {
+                        if (insert)
+                        {
+                            if (p1.Length > 0)
+                            {
+                                p1 += "","";
+                                p2 += "","";
+                            }
+                            p1 += key.Replace(""@"", """");
+                            p2 += key;
+                        }
+                        else
+                        {
+                            if (querySql.Length > 0) querySql += "","";
+                            querySql += key.Replace(""@"", """") + ""="" + key;
+                        }
+                    }
+                    if (insert)
+                    {
+                        querySql = ""insert into "+TABLE_NAME+ @"("" + p1 + "") values("" + p2 + "")"";
+                    }
+                    else
+                    {
+                        querySql = ""update "+TABLE_NAME+ @" set "" + querySql + @"" where ID = @ID"";
+                    }
+                    return db.ExSql(querySql, attrs) > 0;
+                }")
+                .Replace("@deleteFunc", !hasId ? "" :
+                @"
+                public void Delete()
+                {
+                    db.ExSql(@sqlDelete, attrs);
+                }");
                 contentFile = contentFile
                     .Replace("@Tmp", TABLE_NAME + "Row")
                     .Replace("@sbInitVar", sbInitVar.ToString())
@@ -243,9 +260,10 @@ namespace RenderClassModel.Utils
                     .Replace("@selectrow", "\"select * from " + TABLE_NAME + " where id = @id\"")
                     .Replace("@DicAttrs", sbDicAttrs.ToString())
                     .Replace("@sbToRow", sbToRow.ToString())
-                    .Replace("@sqlInsert", "\"insert into " + TABLE_NAME + "(" + sqlInsertTitle + ") values(" + sqlInsertValue + ")\"")
-                    .Replace("@sqlUpdate", "\"update set " + sqlUpdate + " where id = @id\"")
-                    .Replace("@sqlDelete", "\"delete " + TABLE_NAME + " from id = @id\"");
+                    //.Replace("@sqlInsert", "\"insert into " + TABLE_NAME + "(" + sqlInsertTitle + ") values(" + sqlInsertValue + ")\"")
+                    //.Replace("@sqlUpdate", "\"update set " + sqlUpdate + " where id = @id\"")
+                    .Replace("@sqlDelete", "\"delete " + TABLE_NAME + " from id = @id\"")
+                    ;
                 File.WriteAllText(folder + "/" + TABLE_NAME + "Row.cs", contentFile);
             }
         }
